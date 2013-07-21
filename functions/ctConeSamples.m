@@ -1,4 +1,4 @@
-function [pImg, oiD, xy, coneType] = ctConeSamples(scene, nSamples, sensor, oiD, cbType)
+function [voltImages, oiD, xy, coneType] = ctConeSamples(scene, nSamples, sensor, oiD, cbType)
 % Compute cone samples for scene
 %
 %   [voltImages, oiD] = ctConeSamples(scene, nSamples, sensor, oiD)
@@ -56,24 +56,24 @@ end
 
 %% Sensor Setup
 %  set up sensor for Thibos calculation
-oiD = oiCompute(oiD,scene);
+oiD    = oiCompute(oiD,scene);
 sensor = sensorSetSizeToFOV(sensor,sceneGet(scene,'hfov'),scene,oiD);
 sensor = sensorCompute(sensor,oiD);
 
 %% Compute sensor image samples
 %  Init eye movement parameters if not set-up yet
-sensor  = ctInitEyeMovements(sensor, scene, oiD, nSamples*50, 0);
+sensor     = ctInitEyeMovements(sensor, scene, oiD, nSamples*50, 0);
 sensor     = coneAbsorptions(sensor,oiD);
 photonImg  = sensorGet(sensor,'photons');
 photonImg  = photonImg(:,:,randperm(size(photonImg,3)));
 
 %cumN = sensorGet(sensor,'exp time', 'ms');
 [r,c,~]      = size(photonImg);
-pImg         = zeros(r,c,nSamples);
+voltImages   = zeros(r,c,nSamples);
 for ii = 1 : nSamples
-    pImg(:,:,ii) = sum(photonImg(:,:,50*ii-49:50*ii),3);
+    voltImages(:,:,ii) = sum(photonImg(:,:,50*ii-49:50*ii),3);
 end
-    %
+
 %     f            = sensorGet(sensor,'frames per position');
 %     fc           = cumsum(f);
 %     [r,c,~]      = size(tmpImg);
