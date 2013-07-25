@@ -63,7 +63,7 @@ sensor = sensorCompute(sensor,oiD);
 %% Compute sensor image samples
 %  Init eye movement parameters if not set-up yet
 sensor     = ctInitEyeMovements(sensor, scene, oiD, nSamples*50, 0);
-sensor     = coneAbsorptions(sensor,oiD);
+[~,sensor] = coneAbsorptions(sensor,oiD);
 photonImg  = sensorGet(sensor,'photons');
 photonImg  = photonImg(:,:,randperm(size(photonImg,3)));
 

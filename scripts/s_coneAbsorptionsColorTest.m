@@ -8,7 +8,7 @@
 
 %% Create two scenes with slightly different colors
 %  Set Parameters
-fov         =  0.2;             % field of view
+fov         =  0.5;             % field of view
 dCal        = 'LCD-Apple.mat';
 vd          = 2;                % Viewing distance- Two meters
 
@@ -42,14 +42,14 @@ oiD = oiSet(oiD,'name','Human WVF 3mm');
 
 oi1 = oiCompute(oiD,scene1);
 oi2 = oiCompute(oiD,scene2);
-% vcAddAndSelectObject(oi1); oiWindow
+% vcAddAndSelectObject(oi2); oiWindow
 
 %% Create a sample human Sensor
 sensor = sensorCreate('human');
-sensor = sensorSet(sensor,'exp time',0.020);
+sensor = sensorSet(sensor,'exp time',0.050);
 sensor1 = sensorComputeNoiseFree(sensor,oi1);
 sensor2 = sensorComputeNoiseFree(sensor,oi2);
-% vcAddAndSelectObject(sensor1); sensorWindow;
+% vcAddAndSelectObject(sensor2); sensorWindow;
 
 
 nSamples = 400;    % Number of trials
@@ -59,7 +59,7 @@ voltImages2 = sensorComputeSamples(sensor2,nSamples,noiseType);
 
 % Found this once using 
 % [locs,rect] = vcROISelect(sensor1)
-rect = [29    22    5    5];
+rect = [29    22    3   3];
 
 % Crop Images by rect
 voltImages1 = voltImages1(rect(2):rect(2)+rect(4),rect(1):rect(1)+rect(3),:);
@@ -72,16 +72,40 @@ dataMatrix1 = reshape(permute(voltImages1,[3 1 2]),[nSamples, row*col]);
 [row,col,~] = size(voltImages2);
 dataMatrix2 = reshape(permute(voltImages2,[3 1 2]),[nSamples, row*col]);
 I_train = [dataMatrix1; dataMatrix2];
-groupLabels = [ones(nSamples,1);-ones(nSamples,1)];
+groupLabels = [-ones(nSamples,1);ones(nSamples,1)];
 
-% Train and SVM structure explain flags here
-svmStruct = ...
-    svmtrain(groupLabels(ind(1:round(1.8*nSamples))),...
-    sparse(I_train(ind(1:round(1.8*nSamples)),:)),'-t 1');
+% It's important to normalize data (linearly scale each column to 0~1)
+I_train = (I_train-repmat(min(I_train),[length(I_train) 1])) ...
+    ./ repmat(max(I_train)-min(I_train),[length(I_train) 1]);
+
+% Train and SVM structure 
+
+% LibSVM routine
+% Parameters:
+%   -s 2: one class SVM
+%   -t 0: linear kernel
+% More Parameter explaination:
+%   http://www.csie.ntu.edu.tw/~cjlin/libsvm/
+
+%svmStruct = ...
+%    svmtrain(groupLabels(ind(1:round(1.8*nSamples))),...
+%    sparse(I_train(ind(1:round(1.8*nSamples)),:)),'-t 0 -s 2');
+
+% Liblinear Routine
+svmStruct = train(groupLabels(ind(1:round(1.8*nSamples))),...
+    sparse(I_train(ind(1:round(1.8*nSamples)),:)),'-s 2 -q');
 
 % Predictions and accuracy
+
+% LibSVM Routine
+%[predLabels,curAcc,~] = ...
+%     svmpredict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
+%     sparse(I_train(ind(round(1.8*nSamples)+1:end),:)),...
+%     svmStruct,'-q');
+
+% Liblinear Routine
 [predLabels,curAcc,~] = ...
-     svmpredict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
+     predict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
      sparse(I_train(ind(round(1.8*nSamples)+1:end),:)),...
      svmStruct,'-q');
  
