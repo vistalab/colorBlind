@@ -34,6 +34,7 @@ scene2 = sceneSet(scene2,'name','555');
 pupilMM = 3; % Diameter in um
 
 % We need to save zCoefs somewhere as part of the record.
+wave = 400:10:780;
 zCoefs = wvfLoadThibosVirtualEyes(pupilMM);
 wvfP = wvfCreate('wave',wave,'zcoeffs',zCoefs,'name',sprintf('human-%d',pupilMM));
 wvfP = wvfComputePSF(wvfP);
