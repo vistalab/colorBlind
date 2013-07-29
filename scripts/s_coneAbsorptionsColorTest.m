@@ -31,7 +31,7 @@ scene2 = sceneSet(scene2,'name','555');
 % vcAddAndSelectObject(scene2); sceneWindow
 
 %% Create a sample human optics
-pupilMM = 3;
+pupilMM = 3; % Diameter in um
 
 % We need to save zCoefs somewhere as part of the record.
 zCoefs = wvfLoadThibosVirtualEyes(pupilMM);
@@ -47,19 +47,20 @@ oi2 = oiCompute(oiD,scene2);
 %% Create a sample human Sensor
 sensor = sensorCreate('human');
 sensor = sensorSet(sensor,'exp time',0.050);
+sensor = sensorCreateConeMosaic(sensor,sensorGet(sensor,'size'),[0 0.6 0 0.1]/0.7,[]);
 sensor1 = sensorComputeNoiseFree(sensor,oi1);
 sensor2 = sensorComputeNoiseFree(sensor,oi2);
 % vcAddAndSelectObject(sensor2); sensorWindow;
 
 
-nSamples = 400;    % Number of trials
+nSamples = 500;    % Number of trials
 noiseType = 1;    % Just photon noise
 voltImages1 = sensorComputeSamples(sensor1,nSamples,noiseType);
 voltImages2 = sensorComputeSamples(sensor2,nSamples,noiseType);
 
 % Found this once using 
 % [locs,rect] = vcROISelect(sensor1)
-rect = [29    22    3   3];
+rect = [29    22    4   4];
 
 % Crop Images by rect
 voltImages1 = voltImages1(rect(2):rect(2)+rect(4),rect(1):rect(1)+rect(3),:);
