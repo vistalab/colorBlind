@@ -1,33 +1,37 @@
-%% s_coneAbsoptionColorTest
+function curAcc = coneAbsoptionColorDiscrimination(dispName, cRGB1, cRGB2)
+%% coneAbsoptionColorDiscrimination
 %
 %  Compare two color patches for discriminability.
 %
+%  Inputs:
 %
-%
-% HJ VISTASOFT Team 2013
+%  Outputs:
+%  
+%  (HJ) VISTASOFT Team 2013
 
 %% Create two scenes with slightly different colors
 %  Set Parameters
-fov         =  0.5;             % field of view
-dCal        = 'LCD-Apple.mat';
-vd          = 2;                % Viewing distance- Two meters
+fov         =  0.305;             % field of view
+vd          = 6;                  % Viewing distance- Six meters
 
-wave = [540 550];
-sz = 128;
+% Create Scene - show color patch with cRGB on display
+I = repmat(reshape(cRGB1,[1 1 3]),[128 128 1]);
+imwrite(I,'patch1.png');
+I = repmat(reshape(cRGB2,[1 1 3]),[128 128 1]);
+imwrite(I,'patch2.png');
 
 % Create Scene 1
-scene1 = sceneCreate('uniform monochromatic',wave,sz);
+scene1 = sceneFromFile('patch1.png','rgb',100,dispName);
 scene1 = sceneSet(scene1,'fov',fov);       %
-scene1 = sceneSet(scene1,'distance',vd);  % Two meters
-scene1 = sceneSet(scene1,'name','545');
-% vcAddAndSelectObject(scene1); sceneWindow
+scene1 = sceneSet(scene1,'distance',vd);  % Six meters
+scene1 = sceneSet(scene1,'name','Color 1');
+%vcAddAndSelectObject(scene1); sceneWindow
 
 % Create Scene 2
-wave = [550 560];
-scene2 = sceneCreate('uniform monochromatic',wave,sz);
+scene2 = sceneFromFile('patch2.png','rgb',100,dispName);
 scene2 = sceneSet(scene2,'fov',fov);       %
 scene2 = sceneSet(scene2,'distance',vd);  % Two meters
-scene2 = sceneSet(scene2,'name','555');
+scene2 = sceneSet(scene2,'name','Color 2');
 % vcAddAndSelectObject(scene2); sceneWindow
 
 %% Create a sample human optics
@@ -47,8 +51,9 @@ oi2 = oiCompute(oiD,scene2);
 
 %% Create a sample human Sensor
 sensor = sensorCreate('human');
-sensor = sensorSet(sensor,'exp time',0.050);
-sensor = sensorCreateConeMosaic(sensor,sensorGet(sensor,'size'),[0 0.6 0 0.1]/0.7,[]);
+sensor = sensorSet(sensor,'exp time',0.020);
+% Create Colorblind cone mosaic
+%sensor = sensorCreateConeMosaic(sensor,sensorGet(sensor,'size'),[0 0.6 0 0.1]/0.7,[]);
 sensor1 = sensorComputeNoiseFree(sensor,oi1);
 sensor2 = sensorComputeNoiseFree(sensor,oi2);
 % vcAddAndSelectObject(sensor2); sensorWindow;
@@ -59,13 +64,13 @@ noiseType = 1;    % Just photon noise
 voltImages1 = sensorComputeSamples(sensor1,nSamples,noiseType);
 voltImages2 = sensorComputeSamples(sensor2,nSamples,noiseType);
 
-% Found this once using 
-% [locs,rect] = vcROISelect(sensor1)
-rect = [29    22    4   4];
+% Select a small region from middle part
+[M,N,~] = size(voltImages1);
+M = round(M/2); N = round(N/2);
 
 % Crop Images by rect
-voltImages1 = voltImages1(rect(2):rect(2)+rect(4),rect(1):rect(1)+rect(3),:);
-voltImages2 = voltImages2(rect(2):rect(2)+rect(4),rect(1):rect(1)+rect(3),:);
+voltImages1 = voltImages1(M-2:M+2,N-2:N+2,:);
+voltImages2 = voltImages2(M-2:M+2,N-2:N+2,:);
 
 %% Training
 ind = randperm(2*nSamples);
@@ -106,7 +111,7 @@ svmStruct = train(groupLabels(ind(1:round(1.8*nSamples))),...
 %     svmStruct,'-q');
 
 % Liblinear Routine
-[predLabels,curAcc,~] = ...
+[~,curAcc,~] = ...
      predict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
      sparse(I_train(ind(round(1.8*nSamples)+1:end),:)),...
      svmStruct,'-q');
@@ -114,4 +119,4 @@ svmStruct = train(groupLabels(ind(1:round(1.8*nSamples))),...
  %% Plot stuff
  
 
-
+end
