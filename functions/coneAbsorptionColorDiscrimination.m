@@ -1,4 +1,4 @@
-function curAcc = coneAbsoptionColorDiscrimination(dispName, cRGB1, cRGB2)
+function curAcc = coneAbsorptionColorDiscrimination(dispName, cRGB1, cRGB2)
 %% coneAbsoptionColorDiscrimination
 %
 %  Compare two color patches for discriminability.
@@ -8,6 +8,15 @@ function curAcc = coneAbsoptionColorDiscrimination(dispName, cRGB1, cRGB2)
 %  Outputs:
 %  
 %  (HJ) VISTASOFT Team 2013
+
+%% Check Inputs
+if nargin < 1, error('Display file is required to be specified.'); end
+if nargin < 2, error('RGB color for 1st patch is required.'); end
+if nargin < 3, error('RGB color for 2nd patch is required.'); end
+
+if ~exist(dispName,'file'), error('Display file cannot be found.'); end
+if max(cRGB1) > 1, cRGB1 = cRGB1 / 255; end
+if max(cRGB2) > 1, cRGB2 = cRGB2 / 255; end
 
 %% Create two scenes with slightly different colors
 %  Set Parameters
@@ -21,18 +30,21 @@ I = repmat(reshape(cRGB2,[1 1 3]),[128 128 1]);
 imwrite(I,'patch2.png');
 
 % Create Scene 1
-scene1 = sceneFromFile('patch1.png','rgb',100,dispName);
+scene1 = sceneFromFile('patch1.png','rgb',[],dispName);
 scene1 = sceneSet(scene1,'fov',fov);       %
 scene1 = sceneSet(scene1,'distance',vd);  % Six meters
 scene1 = sceneSet(scene1,'name','Color 1');
 %vcAddAndSelectObject(scene1); sceneWindow
 
 % Create Scene 2
-scene2 = sceneFromFile('patch2.png','rgb',100,dispName);
+scene2 = sceneFromFile('patch2.png','rgb',[],dispName);
 scene2 = sceneSet(scene2,'fov',fov);       %
 scene2 = sceneSet(scene2,'distance',vd);  % Two meters
 scene2 = sceneSet(scene2,'name','Color 2');
 % vcAddAndSelectObject(scene2); sceneWindow
+
+% Delete Tmp Files Created
+delete('patch1.png','patch2.png');
 
 %% Create a sample human optics
 pupilMM = 3; % Diameter in um
