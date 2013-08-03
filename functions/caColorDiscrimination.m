@@ -1,11 +1,25 @@
-function curAcc = coneAbsorptionColorDiscrimination(dispName, cRGB1, cRGB2)
-%% coneAbsoptionColorDiscrimination
+function acc = caColorDiscrimination(dispName, cRGB1, cRGB2, varargin)
+%% function caColorDiscrimination
 %
 %  Compare two color patches for discriminability.
 %
 %  Inputs:
+%    dispName - string, the name of display calibration file. For safety,
+%               please include path in the dispName
+%    cRGB1    - 3-by-1 vector, containing RGB values of the 1st patch
+%    cRGB2    - 3-by-1 vector, containing RGB values of the 2nd patch
+%    varargin - To be used for accept SVM parameters, not supported yet
 %
 %  Outputs:
+%    acc      - prediction accuracy
+%
+%  Example:
+%    acc = caColorDiscrimination('LCD-Apple', [0 1 0]', [0 0 1]');
+%
+%  To Do:
+%    1. Add colorblind support
+%    2. Libnear / LibSVM switching
+%    3. Accept SVM Parameters
 %  
 %  (HJ) VISTASOFT Team 2013
 
@@ -15,8 +29,8 @@ if nargin < 2, error('RGB color for 1st patch is required.'); end
 if nargin < 3, error('RGB color for 2nd patch is required.'); end
 
 if ~exist(dispName,'file'), error('Display file cannot be found.'); end
-if max(cRGB1) > 1, cRGB1 = cRGB1 / 255; end
-if max(cRGB2) > 1, cRGB2 = cRGB2 / 255; end
+if max(cRGB1) > 1, cRGB1 = double(cRGB1) / 255; end
+if max(cRGB2) > 1, cRGB2 = double(cRGB2) / 255; end
 
 %% Create two scenes with slightly different colors
 %  Set Parameters
@@ -123,7 +137,7 @@ svmStruct = train(groupLabels(ind(1:round(1.8*nSamples))),...
 %     svmStruct,'-q');
 
 % Liblinear Routine
-[~,curAcc,~] = ...
+[~,acc,~] = ...
      predict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
      sparse(I_train(ind(round(1.8*nSamples)+1:end),:)),...
      svmStruct,'-q');
