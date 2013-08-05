@@ -24,6 +24,7 @@ if nargin < 2, error('Labels for data required'); end
 if nargin < 3, nFolds  = 5; end
 if nargin < 4, svmType = 'linear'; end
 if nargin < 5, opts = '-s 2 -q'; end
+if isempty(opts), opts = '-s 2 -q'; end
 
 %% Divide data into nFolds
 %  Normalize Data

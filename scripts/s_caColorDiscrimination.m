@@ -3,12 +3,9 @@
 %    script use to test color discrimination for certain color
 %
 %  ToDo:
-%    1. Constrain on max iteration - done
-%    2. Compute a reasonable tolerance - done
-%    3. Get rid of annoying outputs
-%    4. Report Progress
-%    5. Create an OLED struct - done
-%    6. Compute reasonable eye isolation
+%    1. Get rid of annoying outputs - should be done in isetbio
+%       - sceneFromFile line 112
+%       - vcReadImage line 132 dac2rgb, should accept some gamma input
 %
 %  (HJ) VISTASOFT Team 2013
 
@@ -33,6 +30,10 @@ dist75        = zeros(1,length(ang));
 matchColorLMS = zeros(length(ang),3);
 
 %% Predict 75% Accuracy
+%  Print out title of report
+fprintf('\tAngle\tcontrast diff\n');
+
+%  Start working on each angle
 for curAngle = 1 : length(ang)
     dir = [cos(ang(curAngle)) sin(ang(curAngle)) 0]';
     % binary search for moving length
@@ -54,13 +55,16 @@ for curAngle = 1 : length(ang)
             maxPos = contrastDiff;
             contrastDiff = (minPos + maxPos) / 2;
         elseif acc < tgtAcc - tol % Acc too low, get further away
-            min = contrastDiff;
+            minPos = contrastDiff;
             contrastDiff = (minPos + maxPos) / 2;
         else
             break;
         end
     end
     dist75(curAngle) = contrastDiff;
+    % Report progress
+    fprintf('\t%d\t%f\n',round(180/pi*ang(curAngle)),...
+        (matchColorLMS(curAngle,1)-refContrast(1))/cos(ang(curAngle)));
 end
 
 %% Fit and Plot
