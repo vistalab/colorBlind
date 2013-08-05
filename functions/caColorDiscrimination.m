@@ -18,8 +18,11 @@ function acc = caColorDiscrimination(dispName, cRGB1, cRGB2, varargin)
 %
 %  To Do:
 %    1. Add colorblind support
-%    2. Libnear / LibSVM switching
+%    2. Use function getSVMAccuracy to do classification - done
 %    3. Accept SVM Parameters
+%    4. Use more areas in a patch to increase efficiency
+%    5. Giving gamma input for display
+%    6. Making display structure for OLED
 %  
 %  (HJ) VISTASOFT Team 2013
 
@@ -99,48 +102,14 @@ voltImages1 = voltImages1(M-2:M+2,N-2:N+2,:);
 voltImages2 = voltImages2(M-2:M+2,N-2:N+2,:);
 
 %% Training
-ind = randperm(2*nSamples);
 [row,col,~] = size(voltImages1);
 dataMatrix1 = reshape(permute(voltImages1,[3 1 2]),[nSamples, row*col]);
 [row,col,~] = size(voltImages2);
 dataMatrix2 = reshape(permute(voltImages2,[3 1 2]),[nSamples, row*col]);
-I_train = [dataMatrix1; dataMatrix2];
-groupLabels = [-ones(nSamples,1);ones(nSamples,1)];
-
-% It's important to normalize data (linearly scale each column to 0~1)
-I_train = (I_train-repmat(min(I_train),[length(I_train) 1])) ...
-    ./ repmat(max(I_train)-min(I_train),[length(I_train) 1]);
 
 % Train and SVM structure 
-
-% LibSVM routine
-% Parameters:
-%   -s 2: one class SVM
-%   -t 0: linear kernel
-% More Parameter explaination:
-%   http://www.csie.ntu.edu.tw/~cjlin/libsvm/
-
-%svmStruct = ...
-%    svmtrain(groupLabels(ind(1:round(1.8*nSamples))),...
-%    sparse(I_train(ind(1:round(1.8*nSamples)),:)),'-t 0 -s 2');
-
-% Liblinear Routine
-svmStruct = train(groupLabels(ind(1:round(1.8*nSamples))),...
-    sparse(I_train(ind(1:round(1.8*nSamples)),:)),'-s 2 -q');
-
-% Predictions and accuracy
-
-% LibSVM Routine
-%[predLabels,curAcc,~] = ...
-%     svmpredict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
-%     sparse(I_train(ind(round(1.8*nSamples)+1:end),:)),...
-%     svmStruct,'-q');
-
-% Liblinear Routine
-[~,acc,~] = ...
-     predict(groupLabels(ind(round(1.8*nSamples)+1:end)),...
-     sparse(I_train(ind(round(1.8*nSamples)+1:end),:)),...
-     svmStruct,'-q');
+acc = getSVMAccuracy([dataMatrix1; dataMatrix2], ...
+              [-ones(nSamples,1);ones(nSamples,1)], 5);
  
  %% Plot stuff
  

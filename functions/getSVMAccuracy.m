@@ -38,7 +38,7 @@ accHistory  = zeros(nFolds,1);
 instPerFold = round(M/nFolds);
 for i = 1 : nFolds
     if i < nFolds
-        trainIndx = [ind(1:(i-1)*instPerFold); ...
+        trainIndx = [ind(1:(i-1)*instPerFold) ...
                      ind(i*instPerFold+1:end)];
         testIndx  = ind((i-1)*instPerFold+1:i*instPerFold);
     else
@@ -49,16 +49,20 @@ for i = 1 : nFolds
     testData  = sparse(dataMatrix(testIndx,:));
     % Train
     switch svmType
-        case 'linear' % Liblinear routine
+        case 'linear' 
+        % Liblinear routine
           svmStruct = train(labels(trainIndx),trainData,opts);
           [~,curAcc,~] = predict(labels(testIndx),testData,svmStruct,'-q');
-        case 'svm' % LibSVM routine
+        case 'svm'
+        % LibSVM routine
+        % Parameters explaination:
+        %   http://www.csie.ntu.edu.tw/~cjlin/libsvm/
           svmStruct = svmtrain(labels(trainIndx),trainData,opts);
           [~,curAcc,~] = svmpredict(labels(testIndx),testData,svmStruct,'-q');
         otherwise
           error('Unknown svm type');
     end
-    accHistory = curAcc(1) / 100; % Convert to between 0~1
+    accHistory(i) = curAcc(1) / 100; % Convert to between 0~1
 end
 
 % Report average and std

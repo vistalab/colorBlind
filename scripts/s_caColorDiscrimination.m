@@ -2,18 +2,27 @@
 %
 %    script use to test color discrimination for certain color
 %
+%  ToDo:
+%    1. Constrain on max iteration - done
+%    2. Compute a reasonable tolerance - done
+%    3. Get rid of annoying outputs
+%    4. Report Progress
+%    5. Create an OLED struct - done
+%    6. Compute reasonable eye isolation
+%
 %  (HJ) VISTASOFT Team 2013
 
-%% Init
+%% Init & clean up
+clear; clc;
 bgColor     = [0.5 0.5 0.5]';
 refColor    = [35 152 101]'/255;
-dispFile    = 'LCD-Apple.mat';% Create an 'OLED-SonyBVM.mat' later
+dispFile    = 'OLED-SonyBVM.mat';
 
 ang = 0:30:359; % direction in degrees
 ang = ang / 180 * pi; % direction in radiance
 
 tgtAcc = 0.75; % Target accuracy - 75%
-tol = 0.03; % tolerance
+tol = 0.05; % tolerance
 
 %% Load display & Compute contrast
 c = load(dispFile);
@@ -29,17 +38,18 @@ for curAngle = 1 : length(ang)
     % binary search for moving length
     contrastDiff = 1/50; % starting moving length
     minPos = 0; maxPos = contrastDiff*2;
-    while true
+    while maxPos - minPos > 1e-4
         % Generate match color
         matchContrast.dir = refContrast + contrastDiff * dir;
         matchContrast.scale = matchContrast.dir(1);
         matchContrast.dir = matchContrast.dir / matchContrast.scale;
+        
+        matchColorLMS(curAngle,:) = refContrast + contrastDiff * dir;
         tt = cone2RGB(display,matchContrast);
         matchColor = 0.5+tt.scale*tt.dir;
         % Compute Accuracy
         acc = caColorDiscrimination(dispFile,refColor,matchColor);
-        % Update Parameters
-        acc = acc(1)/100;
+        acc = acc(1);
         if acc > tgtAcc + tol % Acc too high, move closer
             maxPos = contrastDiff;
             contrastDiff = (minPos + maxPos) / 2;
@@ -51,7 +61,6 @@ for curAngle = 1 : length(ang)
         end
     end
     dist75(curAngle) = contrastDiff;
-    matchColorLMS(curAngle,:) = refContrast + contrastDiff * dir;
 end
 
 %% Fit and Plot
