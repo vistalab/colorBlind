@@ -6,16 +6,18 @@
 %    1. Get rid of annoying outputs - should be done in isetbio
 %       - sceneFromFile line 112
 %       - vcReadImage line 132 dac2rgb, should accept some gamma input
+%    2. Fix progress report for 90 degree and 270 degree
 %
 %  (HJ) VISTASOFT Team 2013
 
 %% Init & clean up
-clear; clc;
+%clear; clc;
 bgColor     = [0.5 0.5 0.5]';
 refColor    = [35 152 101]'/255;
 dispFile    = 'OLED-SonyBVM.mat';
 
-ang = 0:30:359; % direction in degrees
+%ang = 0:30:359; % direction in degrees
+ang = 0:30:359;%[0 30 60 120 150 180 210 240 300 330];
 ang = ang / 180 * pi; % direction in radiance
 
 tgtAcc = 0.75; % Target accuracy - 75%
@@ -36,9 +38,10 @@ fprintf('\tAngle\tcontrast diff\n');
 %  Start working on each angle
 for curAngle = 1 : length(ang)
     dir = [cos(ang(curAngle)) sin(ang(curAngle)) 0]';
+    
     % binary search for moving length
     contrastDiff = 1/50; % starting moving length
-    minPos = 0; maxPos = contrastDiff*2;
+    minPos = 0; maxPos = contrastDiff*5; % Use a large upper bound
     while maxPos - minPos > 1e-4
         % Generate match color
         matchContrast.dir = refContrast + contrastDiff * dir;
@@ -49,16 +52,17 @@ for curAngle = 1 : length(ang)
         tt = cone2RGB(display,matchContrast);
         matchColor = 0.5+tt.scale*tt.dir;
         % Compute Accuracy
-        acc = caColorDiscrimination(dispFile,refColor,matchColor);
-        acc = acc(1);
-        if acc > tgtAcc + tol % Acc too high, move closer
+        acc = caColorDiscrimination(dispFile,refColor,matchColor);%,'cbType',2);
+        if acc(1) > tgtAcc + acc(2) % Acc too high, move closer
             maxPos = contrastDiff;
             contrastDiff = (minPos + maxPos) / 2;
-        elseif acc < tgtAcc - tol % Acc too low, get further away
+        elseif acc(1) < tgtAcc - acc(2) % Acc too low, get further away
             minPos = contrastDiff;
             contrastDiff = (minPos + maxPos) / 2;
-        else
+        elseif acc(2) < tol
             break;
+        else
+            warning('Variance too large');
         end
     end
     dist75(curAngle) = contrastDiff;

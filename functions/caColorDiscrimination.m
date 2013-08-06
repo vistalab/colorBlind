@@ -24,6 +24,7 @@ function acc = caColorDiscrimination(dispName, cRGB1, cRGB2, varargin)
 %  To Do:
 %    1. Use more areas in a patch to increase efficiency - not good idea
 %    2. Giving gamma input for display, changes be made in isetbio
+%    3. Cut in the middle to reduce variance from cone mosaic randomness
 %
 %  Note:
 %    colorblind simulation are only for dichromats here and only for those
@@ -146,7 +147,7 @@ dataMatrix2 = reshape(permute(voltImages2,[3 1 2]),[nSamples, row*col]);
 
 % Train and SVM structure 
 acc = getSVMAccuracy([dataMatrix1; dataMatrix2], ...
-              [-ones(nSamples,1);ones(nSamples,1)], 10);
+              [-ones(nSamples,1);ones(nSamples,1)], 10,'linear',svmOpts);
 
 % Crop Images by rect
 % Cut to small patches from the center region
