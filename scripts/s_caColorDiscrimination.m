@@ -7,13 +7,15 @@
 %       - sceneFromFile line 112
 %       - vcReadImage line 132 dac2rgb, should accept some gamma input
 %    2. Fix progress report for 90 degree and 270 degree
+%    3. Compare result with Professor David
 %
 %  (HJ) VISTASOFT Team 2013
 
 %% Init & clean up
 %clear; clc;
 bgColor     = [0.5 0.5 0.5]';
-refColor    = [35 152 101]'/255;
+%refColor    = [35 152 101]'/255;
+refColor    = [0.5 0.5 0.5]';
 dispFile    = 'OLED-SonyBVM.mat';
 
 %ang = 0:30:359; % direction in degrees

@@ -21,7 +21,7 @@ if length(plainColor) ~= 3, error('Color format not recognized'); end
 
 %% Generate output structure
 if all(plainColor == 0)
-    stim.dir = [1 1 1];
+    stim.dir = [1 1 1]';
     stim.scale = 0;
     return;
 end
